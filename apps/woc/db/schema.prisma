@@ -1,0 +1,579 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//WOC Platform START
+model Tenants {
+  id                String              @id @db.VarChar(100)
+  name              String              @unique
+  customername      String              @unique
+  hostname          String
+  bucketname        String
+  region            String
+  foldername        String
+  secretkey         String
+  accesskey         String
+  status            String              @default("Active")
+  isdeleted         Boolean             @default(false)
+  createdat         DateTime            @default(now())
+  updatedat         DateTime
+  users             User[]
+  roles             Role[]
+  profiles          Profile[]
+  picklists         Picklist[]
+  audit             Audit[]
+  storelocations    Storelocations[]
+  storeattachments  StoreAttachments[]
+  Assetcatalog      AssetCatalog[]
+  Assetinfo         AssetInfo[]
+  assetattachments  AssetAttachments[]
+  vendors           Vendor[]
+  workorders        Workorder[]
+  proposals         Proposal[]
+  invoices          Invoice[]
+  woattachments     WOAttachments[]
+  vendorattachments VendorAttachments[]
+
+  @@unique([id, name])
+}
+
+model User {
+  id                                                        Int                 @id @default(autoincrement())
+  name                                                      String
+  email                                                     String              @unique
+  phone                                                     String?             @db.VarChar(50)
+  address                                                   String?
+  city                                                      String?
+  stateorprovince                                           String?
+  country                                                   String?
+  postalcode                                                String?             @db.VarChar(10)
+  officephone                                               String?             @db.VarChar(50)
+  homephone                                                 String?             @db.VarChar(50)
+  alternateemail                                            String?
+  manager                                                   Int?
+  hashedPassword                                            String?
+  role                                                      String              @default("USER")
+  profile                                                   String?
+  status                                                    String              @default("Active")
+  tenantid                                                  String
+  tenants                                                   Tenants             @relation(fields: [tenantid], references: [id])
+  isdeleted                                                 Boolean             @default(false)
+  createdAt                                                 DateTime            @default(now())
+  updatedAt                                                 DateTime            @updatedAt
+  sessions                                                  Session[]
+  storelocations_storelocations_createdbyTouser             Storelocations[]    @relation("storelocations_createdbyTouser")
+  storelocations_storelocations_facilitymanagerTouser       Storelocations[]    @relation("storelocations_facilitymanagerTouser")
+  storelocations_storelocations_leadfacilitymanagerTouser   Storelocations[]    @relation("storelocations_leadfacilitymanagerTouser")
+  storelocations_storelocations_primarypointofcontactTouser Storelocations[]    @relation("storelocations_primarypointofcontactTouser")
+  storelocations_storelocations_storemanagerTouser          Storelocations[]    @relation("storelocations_storemanagerTouser")
+  storelocations_storelocations_updatedbyTouser             Storelocations[]    @relation("storelocations_updatedbyTouser")
+  users_managerTouser                                       User?               @relation("managerTouser", fields: [manager], references: [id])
+  tokens                                                    Token[]
+  User                                                      User[]              @relation("managerTouser")
+  assets_assets_createdByTouser                             AssetCatalog[]      @relation("asset_createdbyTouser")
+  assets_assets_updatedByTouser                             AssetCatalog[]      @relation("asset_updatedbyTouser")
+  assetinfo_assetinfo_createdByTouser                       AssetInfo[]         @relation("assetinfo_createdbyTouser")
+  assetsinfo_assetinfo_updatedByTouser                      AssetInfo[]         @relation("assetinfo_updatedbyTouser")
+  vendor_vendor_createdByTouser                             Vendor[]            @relation("vendor_createdbyTouser")
+  vendor_vendor_updatedByTouser                             Vendor[]            @relation("vendor_updatedbyTouser")
+  wos_wo_createdByTouser                                    Workorder[]         @relation("workorder_createdbyTouser")
+  wos_wo_updatedByTouser                                    Workorder[]         @relation("workorder_updatedbyTouser")
+  prp_proposal_createdByTouser                              Proposal[]          @relation("proposal_createdbyTouser")
+  prp_proposal_updatedByTouser                              Proposal[]          @relation("proposal_updatedbyTouser")
+  proposal_approvedbyTouser                                 Proposal[]          @relation("proposal_approvedbyTouser")
+  prp_prplineitems_createdByTouser                          ProposalLineItems[] @relation("prplineitems_createdbyTouser")
+  prp_prplineitems_updatedByTouser                          ProposalLineItems[] @relation("prplineitems_updatedbyTouser")
+  inv_invoice_createdByTouser                               Invoice[]           @relation("invoice_createdbyTouser")
+  inv_invoice_updatedByTouser                               Invoice[]           @relation("invoice_updatedbyTouser")
+  invoice_approvedbyTouser                                  Invoice[]           @relation("invoice_approvedbyTouser")
+  inv_invlineitems_createdByTouser                          InvoiceLineItems[]  @relation("invlineitems_createdbyTouser")
+  inv_invlineitems_updatedByTouser                          InvoiceLineItems[]  @relation("invlineitems_updatedbyTouser")
+  storeattachment_createdbyTouser                           StoreAttachments[]  @relation("storeattachment_createdbyTouser")
+  storeattachment_updatedbyTouser                           StoreAttachments[]  @relation("storeattachment_updatedbyTouser")
+  assetattachment_createdbyTouser                           AssetAttachments[]  @relation("assetattachment_createdbyTouser")
+  assetattachment_updatedbyTouser                           AssetAttachments[]  @relation("assetattachment_updatedbyTouser")
+  woattachment_createdbyTouser                              WOAttachments[]     @relation("woattachment_createdbyTouser")
+  woattachment_updatedbyTouser                              WOAttachments[]     @relation("woattachment_updatedbyTouser")
+  vendorattachment_createdbyTouser                          VendorAttachments[] @relation("vendorattachment_createdbyTouser")
+  vendorattachment_updatedbyTouser                          VendorAttachments[] @relation("vendorattachment_updatedbyTouser")
+
+  @@unique([id, email])
+}
+
+model Session {
+  id                 Int       @id @default(autoincrement())
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  expiresAt          DateTime?
+  handle             String    @unique
+  hashedSessionToken String?
+  antiCSRFToken      String?
+  publicData         String?
+  privateData        String?
+  userId             Int?
+  user               User?     @relation(fields: [userId], references: [id])
+}
+
+model Token {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  hashedToken String
+  type        String
+  expiresAt   DateTime
+  sentTo      String
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@unique([hashedToken, type])
+}
+
+model Role {
+  id          String   @id @db.VarChar(100)
+  tenantid    String
+  name        String   @unique
+  description String?
+  isdeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenants  @relation(fields: [tenantid], references: [id])
+}
+
+model Profile {
+  id          String   @id @db.VarChar(100)
+  tenantid    String
+  name        String   @unique
+  description String?
+  permissions Json?
+  isdeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenants  @relation(fields: [tenantid], references: [id])
+}
+
+model Picklist {
+  id          Int      @id @default(autoincrement())
+  tenantid    String
+  name        String
+  uniquename  String
+  description String?
+  valueName   String
+  color       String? //We will use this option to indicate colors
+  isdeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenants     Tenants  @relation(fields: [tenantid], references: [id])
+}
+
+model Audit {
+  id          Int      @id @default(autoincrement())
+  tenantid    String
+  object      String
+  field       String
+  recordid    Int
+  changedfrom String
+  changedto   String
+  createdby   Int      @default(-2)
+  createddate DateTime @default(now())
+  updatedby   Int      @default(-2)
+  updateddate DateTime @updatedAt
+  tenants     Tenants  @relation(fields: [tenantid], references: [id])
+}
+
+//WOC Platform END
+
+//Store Management Module START
+model Storelocations {
+  id                                              String             @id @db.VarChar(100)
+  tenantid                                        String
+  storename                                       String?
+  storeemail                                      String?
+  concept                                         String?
+  dma                                             String?
+  status                                          String?
+  company                                         String?
+  phonenumber                                     String?            @db.VarChar(50)
+  faxnumber                                       String?            @db.VarChar(50)
+  regioncode                                      String?
+  region                                          String?
+  latitude                                        String?
+  longitude                                       String?
+  address                                         String
+  city                                            String
+  stateprovince                                   String
+  postalcode                                      String?            @db.VarChar(20)
+  country                                         String
+  primarypointofcontact                           Int?
+  storemanager                                    Int?
+  facilitymanager                                 Int?
+  storeopendate                                   DateTime?
+  isffasurveyrequired                             Boolean?           @default(true)
+  leadfacilitymanager                             Int?
+  remodeldate                                     DateTime?
+  refreshdate                                     DateTime?
+  storecloseddate                                 DateTime?
+  subvenue                                        String?
+  venue                                           String?
+  isdeleted                                       Boolean            @default(false)
+  createdat                                       DateTime           @default(now())
+  updatedat                                       DateTime
+  createdby                                       Int                @default(-2)
+  updatedby                                       Int                @default(-2)
+  user_storelocations_createdbyTouser             User               @relation("storelocations_createdbyTouser", fields: [createdby], references: [id])
+  user_storelocations_facilitymanagerTouser       User?              @relation("storelocations_facilitymanagerTouser", fields: [facilitymanager], references: [id])
+  user_storelocations_leadfacilitymanagerTouser   User?              @relation("storelocations_leadfacilitymanagerTouser", fields: [leadfacilitymanager], references: [id])
+  user_storelocations_primarypointofcontactTouser User?              @relation("storelocations_primarypointofcontactTouser", fields: [primarypointofcontact], references: [id])
+  user_storelocations_storemanagerTouser          User?              @relation("storelocations_storemanagerTouser", fields: [storemanager], references: [id])
+  tenant                                          Tenants            @relation(fields: [tenantid], references: [id])
+  user_storelocations_updatedbyTouser             User               @relation("storelocations_updatedbyTouser", fields: [updatedby], references: [id])
+  assetcatalog                                    AssetCatalog[]
+  assetinfo                                       AssetInfo[]
+  workorders                                      Workorder[]
+  proposals                                       Proposal[]
+  storeattachments                                StoreAttachments[]
+}
+
+model StoreAttachments {
+  id                                   Int            @id @default(autoincrement())
+  tenantid                             String
+  tenant                               Tenants        @relation(fields: [tenantid], references: [id])
+  storeid                              String         @db.VarChar(100)
+  store                                Storelocations @relation(fields: [storeid], references: [id])
+  attachmentname                       String
+  attachmenturl                        String
+  contenttype                          String?
+  isdeleted                            Boolean        @default(false)
+  createdAt                            DateTime       @default(now())
+  updatedAt                            DateTime       @updatedAt
+  createdBy                            Int            @default(-2)
+  user_storeattachment_createdbyTouser User           @relation("storeattachment_createdbyTouser", fields: [createdBy], references: [id])
+  updatedBy                            Int            @default(-2)
+  user_storeattachment_updatedbyTouser User           @relation("storeattachment_updatedbyTouser", fields: [updatedBy], references: [id])
+}
+
+//Store Management Module END
+
+//Asset Management Module START
+
+model EquipmentCatalog {
+  id                  String              @id @db.VarChar(100)
+  name                String              @unique
+  catagory            String
+  primarytrade        String
+  default_wo_priority String?
+  avg_repair_nte      Float?
+  is_active           Boolean             @default(true)
+  isdeleted           Boolean             @default(false)
+  assetsymptoms       EquipmentSymptoms[]
+}
+
+model EquipmentSymptoms {
+  id                String                  @id @db.VarChar(100)
+  equipmentcatlogid String?
+  assettype         EquipmentCatalog?       @relation(fields: [equipmentcatlogid], references: [id])
+  name              String
+  description       String?
+  is_active         Boolean                 @default(true)
+  isdeleted         Boolean                 @default(false)
+  maintlibrary      EquipmentMaintLibrary[]
+}
+
+model EquipmentMaintLibrary {
+  id                String            @id @db.VarChar(100)
+  symptomid         String
+  symptomtype       EquipmentSymptoms @relation(fields: [symptomid], references: [id])
+  libtype           String
+  equipmentmodelnum String?
+  name              String
+  attachments       String?
+  addl_useful_info  String?
+  is_active         Boolean           @default(true)
+  isdeleted         Boolean           @default(false)
+}
+
+model AssetCatalog {
+  id                         Int            @id @default(autoincrement())
+  tenantid                   String
+  tenant                     Tenants        @relation(fields: [tenantid], references: [id])
+  storeid                    String         @db.VarChar(100)
+  store                      Storelocations @relation(fields: [storeid], references: [id])
+  equipment_reference_id     String
+  name                       String
+  primarytrade               String
+  default_wo_priority        String?
+  avg_repair_nte             Float?
+  is_active                  Boolean        @default(true)
+  isdeleted                  Boolean        @default(false)
+  createdAt                  DateTime       @default(now())
+  updatedAt                  DateTime       @updatedAt
+  createdBy                  Int            @default(-2)
+  user_asset_createdbyTouser User           @relation("asset_createdbyTouser", fields: [createdBy], references: [id])
+  updatedBy                  Int            @default(-2)
+  user_asset_updatedbyTouser User           @relation("asset_updatedbyTouser", fields: [updatedBy], references: [id])
+  assetsinfo                 AssetInfo[]
+  workorders                 Workorder[]
+}
+
+model AssetInfo {
+  id                             Int                @id @default(autoincrement())
+  tenantid                       String
+  tenant                         Tenants            @relation(fields: [tenantid], references: [id])
+  storeid                        String             @db.VarChar(100)
+  store                          Storelocations     @relation(fields: [storeid], references: [id])
+  assetcatalogid                 Int
+  assetcatalog                   AssetCatalog       @relation(fields: [assetcatalogid], references: [id])
+  name                           String
+  zone                           String
+  brand                          String?
+  model_num                      String?
+  serail_num                     String?
+  manufacuring_date              DateTime?
+  job_num                        String?
+  install_date                   DateTime?
+  is_leased                      Boolean?
+  lease_date                     DateTime?
+  lease_period_months            Float?
+  is_under_warranty              Boolean?
+  warrantyprovider               String?
+  warranty_period_months         Float?
+  warranty_expire_date           DateTime?
+  is_active                      Boolean            @default(true)
+  condition                      String?
+  audit_comments                 String?
+  asset_spec_addl_info           Json?
+  isdeleted                      Boolean            @default(false)
+  createdAt                      DateTime           @default(now())
+  updatedAt                      DateTime           @updatedAt
+  createdBy                      Int                @default(-2)
+  user_assetinfo_createdbyTouser User               @relation("assetinfo_createdbyTouser", fields: [createdBy], references: [id])
+  updatedBy                      Int                @default(-2)
+  user_assetinfo_updatedbyTouser User               @relation("assetinfo_updatedbyTouser", fields: [updatedBy], references: [id])
+  assetattachments               AssetAttachments[]
+  workorders                     Workorder[]
+}
+
+model AssetAttachments {
+  id                                   Int       @id @default(autoincrement())
+  tenantid                             String
+  tenant                               Tenants   @relation(fields: [tenantid], references: [id])
+  assetid                              Int
+  asset                                AssetInfo @relation(fields: [assetid], references: [id])
+  attachmentname                       String
+  attachmenturl                        String
+  contenttype                          String?
+  isdeleted                            Boolean   @default(false)
+  createdAt                            DateTime  @default(now())
+  updatedAt                            DateTime  @updatedAt
+  createdBy                            Int       @default(-2)
+  user_assetattachment_createdbyTouser User      @relation("assetattachment_createdbyTouser", fields: [createdBy], references: [id])
+  updatedBy                            Int       @default(-2)
+  user_assetattachment_updatedbyTouser User      @relation("assetattachment_updatedbyTouser", fields: [updatedBy], references: [id])
+}
+
+//Asset Management Module END
+
+//Work Order Module START
+
+model Workorder {
+  id                      Int            @id @default(autoincrement())
+  globaluniqueid          String         @unique //Combine this with uniqueid from Tenant table and id field above
+  tenantid                String
+  storeid                 String         @db.VarChar(100)
+  assetcatalogid          Int?
+  assetcatalog            AssetCatalog?  @relation(fields: [assetcatalogid], references: [id])
+  assetid                 Int?
+  asset                   AssetInfo?     @relation(fields: [assetid], references: [id])
+  trade                   String?
+  category                String
+  description             String
+  priority                String
+  scheduled_date          DateTime
+  original_eta            DateTime
+  nte                     Float
+  stage                   String
+  status                  String
+  completed_date          DateTime?
+  resolution_summary      String
+  root_cause              String?
+  resolution_codes        String?
+  assignedto              Int
+  assignee                Vendor         @relation(fields: [assignedto], references: [id])
+  reassigned_date         DateTime?
+  isdeleted               Boolean        @default(false)
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  createdBy               Int            @default(-2)
+  user_wo_createdbyTouser User           @relation("workorder_createdbyTouser", fields: [createdBy], references: [id])
+  updatedBy               Int            @default(-2)
+  user_wo_updatedbyTouser User           @relation("workorder_updatedbyTouser", fields: [updatedBy], references: [id])
+  tenant                  Tenants        @relation(fields: [tenantid], references: [id])
+  store                   Storelocations @relation(fields: [storeid], references: [id])
+  proposals               Proposal[]
+  invoices                Invoice[]
+}
+
+model WOAttachments {
+  id                                Int      @id @default(autoincrement())
+  tenantid                          String
+  tenant                            Tenants  @relation(fields: [tenantid], references: [id])
+  object                            String //Possible values workorder, proposal, invoice
+  objectrefid                       String
+  attachmentname                    String
+  attachmenturl                     String
+  contenttype                       String?
+  isdeleted                         Boolean  @default(false)
+  createdAt                         DateTime @default(now())
+  updatedAt                         DateTime @updatedAt
+  createdBy                         Int      @default(-2)
+  user_woattachment_createdbyTouser User     @relation("woattachment_createdbyTouser", fields: [createdBy], references: [id])
+  updatedBy                         Int      @default(-2)
+  user_woattachment_updatedbyTouser User     @relation("woattachment_updatedbyTouser", fields: [updatedBy], references: [id])
+}
+
+//Work Order Module END
+
+//Proposal Module START
+model Proposal {
+  id                             Int                 @id @default(autoincrement())
+  globaluniqueid                 String              @unique //Combine this with uniqueid from Tenant table and id field above
+  tenantid                       String
+  storeid                        String              @db.VarChar(100)
+  vendorid                       Int
+  vendor                         Vendor              @relation(fields: [vendorid], references: [id])
+  workorderid                    Int?
+  workorder                      Workorder?          @relation(fields: [workorderid], references: [id])
+  description                    String
+  expiration_date                DateTime
+  approved_date                  DateTime
+  approvedBy                     Int                 @default(-2)
+  user_proposal_approvedbyTouser User                @relation("proposal_approvedbyTouser", fields: [approvedBy], references: [id])
+  isdeleted                      Boolean             @default(false)
+  createdAt                      DateTime            @default(now())
+  updatedAt                      DateTime            @updatedAt
+  createdBy                      Int                 @default(-2)
+  user_proposal_createdbyTouser  User                @relation("proposal_createdbyTouser", fields: [createdBy], references: [id])
+  updatedBy                      Int                 @default(-2)
+  user_proposal_updatedbyTouser  User                @relation("proposal_updatedbyTouser", fields: [updatedBy], references: [id])
+  tenant                         Tenants             @relation(fields: [tenantid], references: [id])
+  store                          Storelocations      @relation(fields: [storeid], references: [id])
+  proposallineitems              ProposalLineItems[]
+}
+
+model ProposalLineItems {
+  id                           Int      @id @default(autoincrement())
+  proposalid                   Int
+  proposal                     Proposal @relation(fields: [proposalid], references: [id])
+  product_service              String
+  measure_type                 String
+  quantity                     Float
+  rate                         Float
+  total                        Float
+  notes                        String
+  isdeleted                    Boolean  @default(false)
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+  createdBy                    Int      @default(-2)
+  user_prpline_createdbyTouser User     @relation("prplineitems_createdbyTouser", fields: [createdBy], references: [id])
+  updatedBy                    Int      @default(-2)
+  user_prpline_updatedbyTouser User     @relation("prplineitems_updatedbyTouser", fields: [updatedBy], references: [id])
+}
+
+//Proposal Module END
+
+//Invoice Module START
+
+model Invoice {
+  id                            Int                @id @default(autoincrement())
+  globaluniqueid                String             @unique //Combine this with uniqueid from Tenant table and id field above  
+  tenantid                      String
+  storeid                       String             @db.VarChar(100)
+  vendorid                      Int
+  vendor                        Vendor             @relation(fields: [vendorid], references: [id])
+  workorderid                   Int
+  workorder                     Workorder          @relation(fields: [workorderid], references: [id])
+  description                   String
+  expiration_date               DateTime
+  approved_date                 DateTime
+  approvedBy                    Int                @default(-2)
+  user_invoice_approvedbyTouser User               @relation("invoice_approvedbyTouser", fields: [approvedBy], references: [id])
+  isdeleted                     Boolean            @default(false)
+  createdAt                     DateTime           @default(now())
+  updatedAt                     DateTime           @updatedAt
+  createdBy                     Int                @default(-2)
+  user_invoice_createdbyTouser  User               @relation("invoice_createdbyTouser", fields: [createdBy], references: [id])
+  updatedBy                     Int                @default(-2)
+  user_invoice_updatedbyTouser  User               @relation("invoice_updatedbyTouser", fields: [updatedBy], references: [id])
+  tenant                        Tenants            @relation(fields: [tenantid], references: [id])
+  invoicelineitems              InvoiceLineItems[]
+}
+
+model InvoiceLineItems {
+  id                           Int      @id @default(autoincrement())
+  invoiceid                    Int
+  invoice                      Invoice  @relation(fields: [invoiceid], references: [id])
+  product_service              String
+  measure_type                 String
+  quantity                     Float
+  rate                         Float
+  total                        Float
+  notes                        String
+  isdeleted                    Boolean  @default(false)
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+  createdBy                    Int      @default(-2)
+  user_invline_createdbyTouser User     @relation("invlineitems_createdbyTouser", fields: [createdBy], references: [id])
+  updatedBy                    Int      @default(-2)
+  user_invline_updatedbyTouser User     @relation("invlineitems_updatedbyTouser", fields: [updatedBy], references: [id])
+}
+
+//Invoice Module END
+
+//Tracker Module END
+
+//Vendor Management Module START
+model Vendor {
+  id                            Int                 @id @default(autoincrement())
+  tenantid                      String
+  vendor_num                    String              @unique
+  Pemail                        String?             @db.VarChar(100)
+  phone_numer                   String?             @db.VarChar(100)
+  fax_numer                     String?             @db.VarChar(100)
+  status                        String?
+  isdeleted                     Boolean             @default(false)
+  createdAt                     DateTime            @default(now())
+  updatedAt                     DateTime            @updatedAt
+  createdBy                     Int                 @default(-2)
+  vendor_vendor_createdbyTouser User                @relation("vendor_createdbyTouser", fields: [createdBy], references: [id])
+  updatedBy                     Int                 @default(-2)
+  vendor_vendor_updatedbyTouser User                @relation("vendor_updatedbyTouser", fields: [updatedBy], references: [id])
+  tenant                        Tenants             @relation(fields: [tenantid], references: [id])
+  workorders                    Workorder[]
+  proposals                     Proposal[]
+  invoices                      Invoice[]
+  vendorattachments             VendorAttachments[]
+}
+
+model VendorAttachments {
+  id                                    Int      @id @default(autoincrement())
+  tenantid                              String
+  tenant                                Tenants  @relation(fields: [tenantid], references: [id])
+  vendorid                              Int
+  vendor                                Vendor   @relation(fields: [vendorid], references: [id])
+  attachmentname                        String
+  attachmenturl                         String
+  contenttype                           String?
+  isdeleted                             Boolean  @default(false)
+  createdAt                             DateTime @default(now())
+  updatedAt                             DateTime @updatedAt
+  createdBy                             Int      @default(-2)
+  user_vendorattachment_createdbyTouser User     @relation("vendorattachment_createdbyTouser", fields: [createdBy], references: [id])
+  updatedBy                             Int      @default(-2)
+  user_vendorattachment_updatedbyTouser User     @relation("vendorattachment_updatedbyTouser", fields: [updatedBy], references: [id])
+}
+
+//Vendor Management Module START

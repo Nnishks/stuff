@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+//WOC Platform START
+model Tenants {
+  id         String     @id @db.VarChar(100)
+  name       String     @unique
+  vendorname String     @unique
+  hostname   String
+  bucketname String
+  region     String
+  foldername String
+  secretkey  String
+  accesskey  String
+  isdeleted  Boolean    @default(false)
+  createdat  DateTime   @default(now())
+  updatedat  DateTime
+  users      User[]
+  roles      Role[]
+  profiles   Profile[]
+  picklists  Picklist[]
+  audit      Audit[]
+
+  @@unique([id, name])
+}
+
+model User {
+  id                  Int       @id @default(autoincrement())
+  name                String
+  email               String    @unique
+  phone               String?   @db.VarChar(50)
+  address             String?
+  city                String?
+  stateorprovince     String?
+  country             String?
+  postalcode          String?   @db.VarChar(10)
+  officephone         String?   @db.VarChar(50)
+  homephone           String?   @db.VarChar(50)
+  alternateemail      String?
+  manager             Int?
+  hashedPassword      String?
+  role                String    @default("USER")
+  profile             String?
+  tenantid            String
+  tenants             Tenants   @relation(fields: [tenantid], references: [id])
+  isdeleted           Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  sessions            Session[]
+  users_managerTouser User?     @relation("managerTouser", fields: [manager], references: [id])
+  tokens              Token[]
+  User                User[]    @relation("managerTouser")
+
+  @@unique([id, email])
+}
+
+model Session {
+  id                 Int       @id @default(autoincrement())
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  expiresAt          DateTime?
+  handle             String    @unique
+  hashedSessionToken String?
+  antiCSRFToken      String?
+  publicData         String?
+  privateData        String?
+  userId             Int?
+  user               User?     @relation(fields: [userId], references: [id])
+}
+
+model Token {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  hashedToken String
+  type        String
+  expiresAt   DateTime
+  sentTo      String
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@unique([hashedToken, type])
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  tenantid    String
+  name        String   @unique
+  description String?
+  isdeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenants     Tenants  @relation(fields: [tenantid], references: [id])
+}
+
+model Profile {
+  id          Int      @id @default(autoincrement())
+  tenantid    String
+  name        String   @unique
+  description String?
+  permissions Json?
+  isdeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenants     Tenants  @relation(fields: [tenantid], references: [id])
+}
+
+model Picklist {
+  id          Int      @id @default(autoincrement())
+  tenantid    String
+  name        String
+  uniquename  String
+  description String?
+  valueName   String
+  color       String? //We will use this option to indicate colors
+  isdeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenants     Tenants  @relation(fields: [tenantid], references: [id])
+}
+
+model Audit {
+  id          Int      @id @default(autoincrement())
+  tenantid    String
+  object      String
+  field       String
+  recordid    Int
+  changedfrom String
+  changedto   String
+  createdby   Int      @default(-2)
+  createddate DateTime @default(now())
+  updatedby   Int      @default(-2)
+  updateddate DateTime @updatedAt
+  tenants     Tenants  @relation(fields: [tenantid], references: [id])
+}
+
+//WOC Platform END

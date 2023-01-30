@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "jsx": "preserve",
+  },
+  "include": [".", "../../apps/woc/app/core/layouts", "../../apps/woc/app/core/components/GridTabs.tsx", "../../apps/woc/app/core/formQueryWrapper.ts"],
+  "exclude": ["dist", "build", "node_modules"]
+}
